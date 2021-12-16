@@ -9,7 +9,7 @@ import url from "../../common/api.service";
 import { SucursalType } from '../../types/sucursal.type';
 import { purple, lime, pink } from '@mui/material/colors';
 import MenuItem from '@mui/material/MenuItem';
-import { Form, useFormik } from 'formik'
+import { Form, useFormik, Field } from 'formik'
 
 export interface DialogProps {
   openModal: boolean;
@@ -32,7 +32,7 @@ function ModalClasificacion(props: DialogProps) {
   const [clasificacion, setClasificacion] = useState({
     id: 0,
     name: '',
-    active: "",
+    active: false,
     sucursal:{}
 
   });
@@ -50,7 +50,8 @@ function ModalClasificacion(props: DialogProps) {
   const saveClassificacion = (data: any) => {
     const datoenviar = {
       name: data.name,
-      sucursal:{name:"hola"},
+      sucursal:{name:data.sucursal},
+      active: data.active
     }
     url.post('classification', datoenviar).then(response => {
 
@@ -118,7 +119,7 @@ function ModalClasificacion(props: DialogProps) {
           // the type of `values` inferred to be Blog
           id: 0,
           name: "",
-          active: "",
+          active:false,
           sucursal:{}
         },
         // you can also set the other form states here
@@ -133,7 +134,7 @@ function ModalClasificacion(props: DialogProps) {
     setClasificacion({
       id: 0,
       name: "",
-      active: "",
+      active:false,
       sucursal:{}
     })
   }
@@ -150,6 +151,8 @@ function ModalClasificacion(props: DialogProps) {
 
     }
   }, [openModal, edit])
+
+
 
 
   return (
@@ -185,7 +188,7 @@ function ModalClasificacion(props: DialogProps) {
               value={formik.values.sucursal}
               onChange={formik.handleChange}
               fullWidth
-
+             
             >
               {suc.map((option:any) => (
               
@@ -195,8 +198,10 @@ function ModalClasificacion(props: DialogProps) {
                 </MenuItem>
               ))}
             </TextField>
+            
+        
 
-            <FormControlLabel sx={{ mt: 5 }} control={<Checkbox defaultChecked />} label="Activo" />
+            <FormControlLabel sx={{ mt: 5 }} control={<Checkbox    onChange={formik.handleChange} />} label={formik.values.active === true ? "Activo" : "Inactivo"}   name="active"  id="active" value={formik.values.active}    />
 
           </form>
         </DialogContent>

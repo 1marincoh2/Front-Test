@@ -10,6 +10,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import FormControl from '@mui/material/FormControl';
 import ModalClasificacion from '../../components/clasificacion/ModalClasificacion';
 import url from "../../common/api.service";
+import { VolumeUpTwoTone } from "@mui/icons-material";
 
 
 
@@ -28,11 +29,39 @@ const Clasificion: NextPage = () => {
 
  
   const [clasificacion, setClasificacion] = useState([]);
+  const [filtros, setfiltros] = useState([]);
   const [classi, setClassi] = useState({
     id: 0,
     name: "",
     active:""
   });
+
+  const [value, setValue] = useState('');
+
+  const busqueda:any = {
+    where:{}
+  }
+
+  const handleChange = (event: any) => {
+       
+   setValue(event.target.value);
+   filtroClas(event.target.value)
+
+    console.log("en buscar",event.target.value)
+  };
+  
+  const filtroClas = (busqueda: any)=>{
+    const resultado = filtros.filter((elemento:any)=>{
+     if (elemento.name.toString().toLowerCase().includes(busqueda.toLowerCase())){
+       return elemento;
+
+     }
+    });
+
+   setClasificacion(resultado)
+
+  }
+
   const [ currency,  setCurrency] = useState();
   const [page, setPage] = React.useState(0);
 
@@ -56,7 +85,7 @@ const Clasificion: NextPage = () => {
 
 
   const [ModalOpen, setModalOpen] = useState(false);
-  
+  const [numberPage, setNumberPage] = useState(0)
   const handleClickOpenModal= () => {
     setModalOpen(true);
   
@@ -67,12 +96,24 @@ const Clasificion: NextPage = () => {
     reset()
   };
 
+  const handleChangepagination = (page:number) => {
+    getClassi(page)
+    console.log("page", page)
+
+  }
  
-  const getClassi = () => {
-    url.get('Classification').then(response => {
+  const getClassi = (p: number = 1) => {
+  //  busqueda.where.name = value
+       // url.get(`classification?query=${JSON.stringify(busqueda)}`).then(response =>{
+          url.get(`classification?query={"limit":5 , "page":${p}}`).then(response => {
       const date = response.data
       setClasificacion(date.data)
+      setfiltros(date.data)
     
+      if (p === 1) {
+        setNumberPage(date.lastPage)
+        console.log("lo que trae p", p)
+      }
       console.log(date.data)
 
     }).catch(error => {
@@ -123,6 +164,7 @@ const Clasificion: NextPage = () => {
                 }}>
                   <TextField
                     autoFocus
+                    name="name"
                     margin="dense"
                     id="name"
                     label="Clasificacion"
@@ -130,8 +172,12 @@ const Clasificion: NextPage = () => {
                     fullWidth
                     variant="outlined"
                     sx={{ paddingRight: 80 }}
+                    value={value}
+                    onChange={handleChange}
+                    
+                   
                   />
-                  <Button disableElevation style={{ background: "#424242" }} size="large" variant="contained" >
+                  <Button disableElevation style={{ background: "#424242" }} onClick={()=>{getClassi()}} size="large" variant="contained" >
                     Buscar
                   </Button>
                   <Button sx={{ ml: 2 }}  onClick={handleClickOpenModal} size="large" variant="contained" >
@@ -147,42 +193,7 @@ const Clasificion: NextPage = () => {
                         <CardContent>
                           <Typography  variant="h5">Clasificaciones</Typography>
                        
-                <Grid container rowSpacing={2} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-             
-                  <Grid item xs={3}>
-                
-                    <TextField
-                      id="outlined-select-currency"
-                      select
-                      label="Rows Per Page"
-                      value={rowsPerPage}
-                      onChange={handleChangeselect}
-                      fullWidth
-
-
-
-                    >
-                     
-                    </TextField>
-                  </Grid>
-                  <Grid item xs={9}>
-
-                    <FormControl fullWidth variant="outlined">
-                      <InputLabel htmlFor="outlined-adornment-password">Filtrar Actividades</InputLabel>
-                      <OutlinedInput
-
-                        id="input-with-icon-textfield"
-                        endAdornment={<InputAdornment position="end"> <IconButton><SearchIcon /></IconButton>  </InputAdornment>}
-                        aria-describedby="standard-weight-helper-text"
-                        inputProps={{
-                          'aria-label': 'weight',
-                        }}
-                        label="Filtrar Actividades"
-                      />
-                    </FormControl>
-                  </Grid>
-                </Grid>
-
+              
 
 
               </CardContent>
@@ -212,7 +223,7 @@ const Clasificion: NextPage = () => {
                             {clas.name}
                           </TableCell>
                           <TableCell align="left" >
-                            <Chip label={clas.active} color="success" />                          </TableCell>
+                            <Chip label={clas.active === "true" ? 'activo' :'inactivo'} color={clas.active === "true" ? "success" :"error"} />                          </TableCell>
 
                           <TableCell align="left"><IconButton  onClick={() => editar(clas)}color="primary" aria-label="upload picture" component="span">
                             <EditIcon />
@@ -223,15 +234,14 @@ const Clasificion: NextPage = () => {
                     </TableBody>
                   </Table>
                 </TableContainer>
-                <TablePagination
-                  rowsPerPageOptions={[10, 25, 100]}
-                  component="div"
-                  count={clasificacion.length}
-                  rowsPerPage={rowsPerPage}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                />
+                <Pagination
+
+color="primary"
+//@ts-ignore
+onChange={(e, value) => handleChangepagination(value)}
+count={numberPage}
+size="large"
+/>
               </Paper>
 
 
